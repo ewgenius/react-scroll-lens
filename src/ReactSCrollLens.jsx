@@ -10,6 +10,10 @@ class ReactScrollLens extends Component {
     itemHeight: 56
   }
 
+  constructor() {
+    super();
+  }
+
   onScroll() {
 
   }
