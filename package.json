@@ -8,6 +8,8 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/react": "^0.14.39",
+    "@types/react-dom": "^0.14.17",
     "react": "^15.3.2",
     "react-dom": "^15.3.2"
   },
