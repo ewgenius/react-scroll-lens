@@ -9,6 +9,7 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
-    "jsx": "react"
+    "jsx": "react",
+    "outDir": "dist"
   }
 }
