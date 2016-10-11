@@ -23,6 +23,8 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     renderItem: (i: number) => <div>{i}</div>
   }
 
+  // elements
+
   private get scroller(): HTMLDivElement {
     return this.refs['scroller'] as HTMLDivElement
   }
@@ -35,18 +37,14 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     return this.refs['visible'] as HTMLDivElement
   }
 
+  // parameters
+
   private get size(): number {
     return this.props.items ? this.props.items.length : 0
   }
 
   private get height(): number {
     return this.size * this.props.itemHeight
-  }
-
-  private get scrollTop(): number {
-    if (!this.scroller)
-      return 0
-    else return this.scroller.scrollTop
   }
 
   private get scrollHeight(): number {
@@ -59,6 +57,14 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     if (!this.scroller)
       return 0
     else return this.scroller.offsetHeight
+  }
+
+  // offsets
+
+  private get scrollTop(): number {
+    if (!this.scroller)
+      return 0
+    else return this.scroller.scrollTop
   }
 
   private get offsetTop(): number {
