@@ -1,6 +1,12 @@
 import * as React from 'react'
 import { Component, Props, HTMLAttributes, CSSProperties } from 'react'
 
+const scrollerStyle: CSSProperties = {
+  height: '100%',
+  overflowX: 'hidden',
+  overflowY: 'auto'
+}
+
 export interface ScrollLensProps extends HTMLAttributes<HTMLDivElement>, Props<ScrollLens> {
   itemHeight?: number
   items: any[]
@@ -37,6 +43,32 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     return this.size * this.props.itemHeight
   }
 
+  private get scrollTop(): number {
+    if (!this.scroller)
+      return 0
+    else return this.scroller.scrollTop
+  }
+
+  private get scrollHeight(): number {
+    if (!this.scroller)
+      return 0
+    else return this.scroller.scrollHeight
+  }
+
+  private get scrollerHeight(): number {
+    if (!this.scroller)
+      return 0
+    else return this.scroller.offsetHeight
+  }
+
+  private get offsetTop(): number {
+    return this.scrollHeight
+  }
+
+  private get offsetBottom(): number {
+    return this.scrollHeight - this.scrollTop - this.scrollerHeight
+  }
+
   constructor() {
     super()
     this.state = {}
@@ -51,7 +83,7 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   }
 
   onScroll() {
-
+    console.log(this.scrollTop, this.offsetTop, this.offsetBottom)
   }
 
   updateView() {
@@ -71,16 +103,10 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   render() {
     const {style, className, id} = this.props
 
-    const scrollerStyle: CSSProperties = {
-      height: '100%',
-      overflowX: 'hidden',
-      overflowY: 'auto'
-    }
-
     return <div
       id={id}
       className={className}
-      style={scrollerStyle}
+      style={Object.assign(scrollerStyle, style)}
       onScroll={() => this.onScroll()}
       ref='scroller'>
       <div ref='container'>
