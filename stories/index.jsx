@@ -19,6 +19,10 @@ class TestLoading extends React.Component {
     }
   }
 
+  componentDidMount() {
+    this.refs['scroller'].scrollToBottom()
+  }
+
   addTop() {
     const item = this.state.items[0]
     const arr = range(item - 20, item - 1)
@@ -45,16 +49,17 @@ class TestLoading extends React.Component {
 
   render() {
     const {items, loadingTop, loadingBottom} = this.state
-    return <div style={{ height: 300, border: '1px solid #000' }}>
+    return <div style={{ height: 500 }}>
       <ScrollLens
         ref='scroller'
+        itemHeight={100}
         loader={<div style={{ padding: 16, textAlign: 'center' }}>loading process</div>}
         style={{ height: '100%' }}
         loadingTop={loadingTop}
         loadingBottom={loadingBottom}
         onRequestLoadingFromTop={() => this.addTop()}
-        onRequestLoadingFromBottom={() => this.addBottom()}
-        renderItem={(i) => <div>item: #{items[i]}</div>}
+        //onRequestLoadingFromBottom={() => this.addBottom()}
+        renderItem={(i) => <div style={{ borderBottom: '1px solid #000', height: 200 }}>item: #{items[i]}</div>}
         items={items} />
       <button onClick={() => this.refs['scroller'].scrollToBottom()}>scroll bottom</button>
       <button onClick={() => this.refs['scroller'].scrollToTop()}>scroll top</button>
@@ -64,16 +69,42 @@ class TestLoading extends React.Component {
 }
 
 storiesOf('ScrollLens', module)
-  .add('simple', () => (<div style={{ height: 300, border: '1px solid #000' }}>
+  .add('simple', () => (<div style={{ height: 500 }}>
     <ScrollLens
-      itemHeight={56}
+      itemHeight={100}
       style={{ height: '100%' }}
-      renderItem={(i) => <div style={{height: 56}}>item: #{baseItems[i]}</div>}
+      renderItem={(i) => <div style={{ borderBottom: '1px solid #000', height: 200 }}>item: #{baseItems[i]}</div>}
       items={baseItems} />
   </div>))
   .add('uploading from top and bottom', () => {
     return <TestLoading />
   })
-  .add('updating elements', () => {
-    return <TestLoading />
+  .add('vertical centering', () => {
+    return <div style={{
+      height: 500,
+      border: '1px solid #000'
+    }}>
+      <div style={{
+        border: '1px solid #f00',
+        padding: 16,
+        height: 100
+      }}>
+        <div style={{
+          marginTop: -40,
+          border: '1px solid #0f0',
+          padding: 16
+        }}>
+          <div style={{ border: '1px solid #e0e0e0', height: 20 }}>0</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 35 }}>1</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 40 }}>2</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 10 }}>3</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 15 }}>4</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 20 }}>5</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 25 }}>6</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 28 }}>7</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 13 }}>8</div>
+          <div style={{ border: '1px solid #e0e0e0', height: 18 }}>9</div>
+        </div>
+      </div>
+    </div>
   });
