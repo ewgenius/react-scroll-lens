@@ -19,7 +19,8 @@ export interface ScrollLensProps extends HTMLAttributes<HTMLDivElement>, Props<S
 }
 
 export interface ScrollLensState {
-
+  visibleIndexTop?: number
+  visibleIndexBottom?: number
 }
 
 export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
@@ -41,6 +42,12 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
 
   private get visible(): HTMLDivElement {
     return this.refs['visible'] as HTMLDivElement
+  }
+
+  private set visibleTopOffset(value: number) {
+    if (this.visible) {
+      this.visible.style.transform = `translate(0px, ${value}px)`
+    }
   }
 
   // parameters
@@ -65,6 +72,26 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     else return this.scroller.offsetHeight
   }
 
+  // jump to
+
+  public scrollToTop() {
+    if (this.scroller) {
+      this.scroller.scrollTop = 0
+    }
+  }
+
+  public scrollToBottom() {
+    if (this.scroller) {
+      this.scroller.scrollTop += this.scrollHeight
+    }
+  }
+
+  public scrollTo(index: number) {
+    if (this.scroller) {
+      this.scroller.scrollTop = this.props.itemHeight * index
+    }
+  }
+
   // offsets
 
   private get scrollTop(): number {
@@ -81,9 +108,27 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     return this.scrollHeight - this.scrollTop - this.scrollerHeight
   }
 
+  private get scrollCenter(): number {
+    return this.scrollTop + this.scrollerHeight / 2
+  }
+
+  private get visibleIndexTop(): number {
+    return Math.max(0, Math.round(this.offsetTop / this.props.itemHeight))
+  }
+
+  private get visibleIndexBottom(): number {
+    return Math.min(
+      this.props.items.length,
+      this.visibleIndexTop + Math.round(this.scrollerHeight / this.props.itemHeight)
+    )
+  }
+
   constructor() {
     super()
-    this.state = {}
+    this.state = {
+      visibleIndexTop: 0,
+      visibleIndexBottom: 0
+    }
   }
 
   componentDidMount() {
@@ -97,27 +142,47 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   }
 
   onScroll() {
-    console.log(this.offsetTop, this.offsetBottom, this.scrollerHeight, this.height)
+    //console.log(this.offsetTop, this.scrollCenter, this.offsetBottom)
+    console.log(this.visibleIndexTop, this.visibleIndexBottom)
+
     if (this.props.onRequestLoadingFromTop && this.offsetTop === 0) {
       this.props.onRequestLoadingFromTop()
     }
     if (this.props.onRequestLoadingFromBottom && this.offsetBottom === 0) {
       this.props.onRequestLoadingFromBottom()
     }
+
+    this.visibleTopOffset = this.offsetTop
+    this.updateVisible()
+  }
+
+  updateVisible() {
+    if (
+      this.visibleIndexTop !== this.state.visibleIndexTop ||
+      this.visibleIndexBottom !== this.state.visibleIndexBottom
+    ) {
+      this.setState({
+        visibleIndexTop: this.visibleIndexTop,
+        visibleIndexBottom: this.visibleIndexBottom
+      })
+    }
   }
 
   updateView() {
     if (this.props.items) {
       this.container.style.height = this.height + 'px'
+      this.updateVisible()
     }
   }
 
   renderItems(): JSX.Element[] {
-    return this.props.items.map((item: any, i: number) => {
-      return <div key={i}>
-        {this.props.renderItem(i)}
-      </div>
-    })
+    return this.props.items
+      .slice(this.state.visibleIndexTop, this.state.visibleIndexBottom)
+      .map((item: any, i: number) => {
+        return <div key={i}>
+          {this.props.renderItem(this.state.visibleIndexTop + i)}
+        </div>
+      })
   }
 
   render() {

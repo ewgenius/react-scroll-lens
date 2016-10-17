@@ -7,11 +7,13 @@ import {
 import ScrollLens from '../dist';
 import { range } from 'ramda'
 
+const baseItems = range(1, 500)
+
 class TestLoading extends React.Component {
   constructor() {
     super()
     this.state = {
-      items: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      items: baseItems,
       loadingTop: false,
       loadingBottom: false
     }
@@ -45,6 +47,7 @@ class TestLoading extends React.Component {
     const {items, loadingTop, loadingBottom} = this.state
     return <div style={{ height: 300, border: '1px solid #000' }}>
       <ScrollLens
+        ref='scroller'
         loader={<div style={{ padding: 16, textAlign: 'center' }}>loading process</div>}
         style={{ height: '100%' }}
         loadingTop={loadingTop}
@@ -53,6 +56,9 @@ class TestLoading extends React.Component {
         onRequestLoadingFromBottom={() => this.addBottom()}
         renderItem={(i) => <div>item: #{items[i]}</div>}
         items={items} />
+      <button onClick={() => this.refs['scroller'].scrollToBottom()}>scroll bottom</button>
+      <button onClick={() => this.refs['scroller'].scrollToTop()}>scroll top</button>
+      <button onClick={() => this.refs['scroller'].scrollTo(321)}>scroll to 321</button>
     </div>
   }
 }
@@ -61,8 +67,12 @@ storiesOf('ScrollLens', module)
   .add('simple', () => (<div style={{ height: 300, border: '1px solid #000' }}>
     <ScrollLens
       style={{ height: '100%' }}
-      items={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} />
+      renderItem={(i) => <div>item: #{baseItems[i]}</div>}
+      items={baseItems} />
   </div>))
-  .add('loading', () => {
+  .add('uploading from top and bottom', () => {
+    return <TestLoading />
+  })
+  .add('updating elements', () => {
     return <TestLoading />
   });
