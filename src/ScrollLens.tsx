@@ -24,9 +24,8 @@ export interface ScrollLensProps extends HTMLAttributes<HTMLDivElement>, Props<S
 }
 
 export interface ScrollLensState {
-  visibleIndexTop?: number
-  visibleIndexBottom?: number
-  visibleHeight?: number
+  bufferIndex1?: number
+  bufferIndex2?: number
 }
 
 export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
@@ -36,6 +35,8 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     loader: <div>loading</div>
   }
 
+  private buffer1Y: number = 0
+  private buffer2Y: number = 0
   private currentBuffer: 1 | 2 = 1
   private prevScrollRatio: number = 0
 
@@ -88,7 +89,7 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   }
 
   private get itemsPerFrame(): number {
-    return this.frameHeight / this.props.itemHeight
+    return Math.ceil(this.frameHeight / this.props.itemHeight)
   }
 
   private get buffer1Height(): number {
@@ -101,6 +102,14 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     if (!this.buffer2)
       return 0
     else return this.buffer2.offsetHeight
+  }
+
+  private get buffer1K(): number {
+    return this.buffer1Height / this.frameHeight
+  }
+
+  private get buffer2K(): number {
+    return this.buffer2Height / this.frameHeight
   }
 
   // jump to
@@ -149,6 +158,10 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     return this.scrollTop / (this.scrollHeight - this.scrollerHeight)
   }
 
+  private get scrollCenter(): number {
+    return this.offsetTop + this.scrollerHeight / 2
+  }
+
   private get visibleIndexTop(): number {
     return Math.max(0, Math.round(this.offsetTop / this.props.itemHeight))
   }
@@ -163,9 +176,8 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   constructor() {
     super()
     this.state = {
-      visibleIndexTop: 0,
-      visibleIndexBottom: 10,
-      visibleHeight: 0
+      bufferIndex1: 0,
+      bufferIndex2: 2
     }
   }
 
@@ -186,45 +198,61 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     const direction = this.prevScrollRatio < this.scrollRatio ? 1 : -1
     this.prevScrollRatio = this.scrollRatio
 
+    // calculate frame centers
+    const frameCenter = this.frameHeight / 2 - this.scrollCenter - this.scrollerHeight / 2
+    const center1Offset = (this.buffer1Y + frameCenter) * (this.buffer1K - 1)
+    const center2Offset = (this.buffer2Y + frameCenter) * (this.buffer2K - 1)
+
     const bufferIndex = Math.min(
       Math.max(
         Math.round((this.scrollTop + (direction === 1 ? 0.5 : -1.5) * this.scrollerHeight) / this.frameHeight),
         0), this.framesCount)
 
-    const bufferY = bufferIndex * this.props.itemHeight * this.itemsPerFrame
+    const bufferY = bufferIndex * this.frameHeight
     const currentBuffer = bufferIndex % 2 + 1
 
-    if (currentBuffer === 1)
-      this.buffer1.style.transform = `translate(0px, ${bufferY}px)`
-    if (currentBuffer === 2)
-      this.buffer2.style.transform = `translate(0px, ${bufferY}px)`
-
+    if (currentBuffer === 1) {
+      this.buffer1Y = bufferY
+      this.setState({
+        bufferIndex1: bufferIndex
+      })
+    }
+    if (currentBuffer === 2) {
+      this.buffer2Y = bufferY
+      this.setState({
+        bufferIndex2: bufferIndex
+      })
+    }
+    this.buffer1.style.transform = `translate(0px, ${this.buffer1Y + center1Offset}px)`
+    this.buffer2.style.transform = `translate(0px, ${this.buffer2Y + center2Offset}px)`
     this.currentBuffer = currentBuffer === 1 ? 1 : 2
 
     if (this.props.onRequestLoadingFromTop && this.offsetTop === 0) {
-      this.props.onRequestLoadingFromTop()
+      //this.props.onRequestLoadingFromTop()
     }
     if (this.props.onRequestLoadingFromBottom && this.offsetBottom === 0) {
-      this.props.onRequestLoadingFromBottom()
+      //this.props.onRequestLoadingFromBottom()
     }
   }
 
   updateView() {
     if (this.props.items) {
       this.container.style.height = this.height + 'px'
-      this.buffer1.style.height = this.frameHeight + 'px'
-      this.buffer2.style.height = this.frameHeight + 'px'
+      this.buffer1.style.minHeight = this.frameHeight + 'px'
+      this.buffer2.style.minHeight = this.frameHeight + 'px'
+      this.buffer1Y = 0
+      this.buffer2Y = this.frameHeight
       this.buffer2.style.transform = `translate(0px, ${this.frameHeight}px)`
     }
   }
 
-  renderItems(frame: 1 | 2 = 1): JSX.Element[] {
-    const offset = (frame - 1) * this.itemsPerFrame
+  renderItems(bufferIndex: number = 0): JSX.Element[] {
+    const offset = bufferIndex * this.itemsPerFrame
     return this.props.items
       .slice(offset, this.itemsPerFrame + offset)
       .map((item: any, i: number) => {
         return <div key={i}>
-          {this.props.renderItem(this.state.visibleIndexTop + i)}
+          {this.props.renderItem(offset + i)}
         </div>
       })
   }
@@ -241,12 +269,12 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
       <div ref='container' style={containerStyle}>
         <div ref='buffer1' style={{ position: 'absolute', width: '100%', backgroundColor: '#f00' }}>
           {
-            //this.renderItems(1)
+            this.renderItems(this.state.bufferIndex1)
           }
         </div>
         <div ref='buffer2' style={{ position: 'absolute', width: '100%', backgroundColor: '#0f0' }}>
           {
-            //this.renderItems(2)
+            this.renderItems(this.state.bufferIndex2)
           }
         </div>
       </div>
