@@ -66,8 +66,9 @@ class TestLoading extends React.Component {
 storiesOf('ScrollLens', module)
   .add('simple', () => (<div style={{ height: 300, border: '1px solid #000' }}>
     <ScrollLens
+      itemHeight={56}
       style={{ height: '100%' }}
-      renderItem={(i) => <div>item: #{baseItems[i]}</div>}
+      renderItem={(i) => <div style={{height: 56}}>item: #{baseItems[i]}</div>}
       items={baseItems} />
   </div>))
   .add('uploading from top and bottom', () => {

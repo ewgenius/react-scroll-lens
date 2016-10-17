@@ -7,6 +7,10 @@ const scrollerStyle: CSSProperties = {
   overflowY: 'auto',
 }
 
+const containerStyle: CSSProperties = {
+  overflow: 'hidden'
+}
+
 export interface ScrollLensProps extends HTMLAttributes<HTMLDivElement>, Props<ScrollLens> {
   itemHeight?: number
   items: any[]
@@ -108,8 +112,8 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
     return this.scrollHeight - this.scrollTop - this.scrollerHeight
   }
 
-  private get scrollCenter(): number {
-    return this.scrollTop + this.scrollerHeight / 2
+  private get scrollRatio(): number {
+    return this.scrollTop / (this.scrollHeight - this.scrollerHeight)
   }
 
   private get visibleIndexTop(): number {
@@ -119,7 +123,7 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   private get visibleIndexBottom(): number {
     return Math.min(
       this.props.items.length,
-      this.visibleIndexTop + Math.round(this.scrollerHeight / this.props.itemHeight)
+      this.visibleIndexTop + Math.round(this.scrollerHeight / this.props.itemHeight) + 1
     )
   }
 
@@ -136,14 +140,16 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   }
 
   componentWillReceiveProps(next: ScrollLensProps) {
-    if (next.items.length !== this.props.items.length) {
+    if (
+      next.items.length !== this.props.items.length ||
+      next.itemHeight !== this.props.itemHeight
+    ) {
       this.updateView()
     }
   }
 
   onScroll() {
-    //console.log(this.offsetTop, this.scrollCenter, this.offsetBottom)
-    console.log(this.visibleIndexTop, this.visibleIndexBottom)
+    console.log(this.offsetTop, this.scrollRatio, this.offsetBottom)
 
     if (this.props.onRequestLoadingFromTop && this.offsetTop === 0) {
       this.props.onRequestLoadingFromTop()
@@ -152,7 +158,6 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
       this.props.onRequestLoadingFromBottom()
     }
 
-    this.visibleTopOffset = this.offsetTop
     this.updateVisible()
   }
 
@@ -161,6 +166,8 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
       this.visibleIndexTop !== this.state.visibleIndexTop ||
       this.visibleIndexBottom !== this.state.visibleIndexBottom
     ) {
+      this.visibleTopOffset = this.offsetTop
+
       this.setState({
         visibleIndexTop: this.visibleIndexTop,
         visibleIndexBottom: this.visibleIndexBottom
@@ -194,7 +201,7 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
       style={Object.assign(scrollerStyle, style)}
       onScroll={() => this.onScroll()}
       ref='scroller'>
-      <div ref='container'>
+      <div ref='container' style={containerStyle}>
         <div ref='visible'>
           {loadingTop && loader}
           {this.renderItems()}
