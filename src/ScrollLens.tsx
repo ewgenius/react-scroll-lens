@@ -4,13 +4,15 @@ import { Component, Props, HTMLAttributes, CSSProperties } from 'react'
 const scrollerStyle: CSSProperties = {
   height: '100%',
   overflowX: 'hidden',
-  overflowY: 'auto'
+  overflowY: 'auto',
 }
 
 export interface ScrollLensProps extends HTMLAttributes<HTMLDivElement>, Props<ScrollLens> {
   itemHeight?: number
   items: any[]
   renderItem?: (i: number) => JSX.Element
+  onRequestLoadingFromTop?: Function
+  onRequestLoadingFromBottom?: Function
 }
 
 export interface ScrollLensState {
@@ -68,7 +70,7 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   }
 
   private get offsetTop(): number {
-    return this.scrollHeight
+    return this.scrollTop
   }
 
   private get offsetBottom(): number {
@@ -89,7 +91,13 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   }
 
   onScroll() {
-    console.log(this.scrollTop, this.offsetTop, this.offsetBottom)
+    console.log(this.offsetTop, this.offsetBottom, this.scrollerHeight, this.height)
+    if (this.props.onRequestLoadingFromTop && this.offsetTop === 0) {
+      this.props.onRequestLoadingFromTop()
+    }
+    if (this.props.onRequestLoadingFromBottom && this.offsetBottom === 0) {
+      this.props.onRequestLoadingFromBottom()
+    }
   }
 
   updateView() {
