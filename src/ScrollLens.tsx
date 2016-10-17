@@ -13,6 +13,9 @@ export interface ScrollLensProps extends HTMLAttributes<HTMLDivElement>, Props<S
   renderItem?: (i: number) => JSX.Element
   onRequestLoadingFromTop?: Function
   onRequestLoadingFromBottom?: Function
+  loadingTop?: boolean
+  loadingBottom?: boolean
+  loader?: JSX.Element
 }
 
 export interface ScrollLensState {
@@ -22,7 +25,8 @@ export interface ScrollLensState {
 export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   static defaultProps = {
     itemHeight: 10,
-    renderItem: (i: number) => <div>{i}</div>
+    renderItem: (i: number) => <div>{i}</div>,
+    loader: <div>loading</div>
   }
 
   // elements
@@ -87,7 +91,9 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   }
 
   componentWillReceiveProps(next: ScrollLensProps) {
-
+    if (next.items.length !== this.props.items.length) {
+      this.updateView()
+    }
   }
 
   onScroll() {
@@ -115,7 +121,7 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
   }
 
   render() {
-    const {style, className, id} = this.props
+    const {style, className, id, loadingTop, loadingBottom, loader} = this.props
 
     return <div
       id={id}
@@ -125,7 +131,9 @@ export class ScrollLens extends Component<ScrollLensProps, ScrollLensState> {
       ref='scroller'>
       <div ref='container'>
         <div ref='visible'>
+          {loadingTop && loader}
           {this.renderItems()}
+          {loadingBottom && loader}
         </div>
       </div>
     </div>
